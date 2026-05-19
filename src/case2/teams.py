@@ -46,6 +46,10 @@ class Solution(SupportsCopySolution, SupportsObjectiveValue, SupportsLowerBound)
 
     def objective_value(self) -> float:
         return self.lb
+    
+    def lower_bound(self) -> float:
+        return self.lb
+
 
     def __eq__(self, other: Solution):
         return (self.problem     == other.problem     and 
@@ -57,10 +61,12 @@ class Solution(SupportsCopySolution, SupportsObjectiveValue, SupportsLowerBound)
     def __repr__(self): # repr for printing
         return (
             f"Solution(\n"
-            f"  assignments={self.assignments!r},\n"
-            f"  team_labels={self.team_labels!r},\n"
-            f"  team_sizes={self.team_sizes!r},\n"
-            f"  cost={self.lb!r}\n"
+            #f"  assignments={self.assignments!r},\n"
+            f"  num_students={len(self.assignments)}\n"
+            #f"  team_labels={self.team_labels!r},\n"
+            #f"  team_sizes={self.team_sizes!r},\n"
+            f"  num_teams={len(self.team_sizes)!r},\n"
+            f"  lb={self.lb!r}\n"
             f")"
         )
 
@@ -104,15 +110,32 @@ class AddMove(SupportsApplyMove[Solution], SupportsLowerBoundIncrement[Solution]
     
     def lower_bound_increment(self, solution: Solution) -> float:
         cost = self.score_increment(solution)
-        return -(cost + self.disagreementsHeuristic(solution))
+        #return -(cost + self.disagreementsHeuristic(solution))
+        return -cost
     
     def disagreementsHeuristic(self, solution: Solution):
         weights = solution.problem.weights
-        blocked = sum(1 for u in p.disagrees_with[self.s] if solution.assignments[u] == -1) #unassigned
-        return blocked * (sum(weights))/len(weights)
+        blocked = sum(1 for u in solution.problem.disagrees_with[self.s] if solution.assignments[u] == -1) #unassigned
+        return blocked * 0.1*(sum(weights))/len(weights)
+    
+    def labelHeuristic(self, solution: Solution) -> float:
+        p = solution.problem
+        total = p.n_members
+        penalty = sum(
+            p.weights[a] / (1 + sum(1 for s in range(total) if p.attributes[s][a] == label))
+            for a, label in enumerate(p.attributes[self.s])
+        )
+        return penalty
+    
+    def teamBalanceHeuristic(self, solution: Solution) -> float:
+        p = solution.problem
+        smallest = min(solution.team_sizes)
+        return -(solution.team_sizes[self.toTeam] - smallest) * sum(p.weights) / len(p.weights)
+
+
 
     def apply_move(self, solution: Solution) -> Solution:
-        solution.lb += self.lower_bound_increment(solution)
+        solution.lb += self.score_increment(solution)
         solution.assignments[self.s] = self.toTeam
         solution.team_sizes[self.toTeam] += 1
         member_labels = solution.problem.attributes[self.s]
@@ -538,49 +561,52 @@ class Problem(
             min_size,
             max_size
         )
+    
+def test(instance: str):
+    t0 = time.time()
+    with open(instance) as file:
+        p = Problem.from_textIO(file)
+    p.empty_solution()
+
+    p.construction_neighbourhood("balanced")
+    s = alg.greedy_construction(p)
+    print(f"Is feasible: {s.is_feasible()}")
+    print(s)
+    print(f"Execution time: {time.time()-t0}")
+
+
 
 if __name__ == "__main__":
     import roar_net_api.algorithms as alg
     
-    name = "teams optimization task"
-    t0 = time.time()
-    # Read from file if provided, otherwise stdin
-
     instance = (
-        "tfp_13n_3q_4l_5u_3a_5d.txt"
+        #"tfp_13n_3q_4l_5u_3a_5d.txt"
         #"tfp_131n_27q_4l_5u_10a_10d.txt"
         #"tfp_200n_40q_5l_5u_10a_15d.txt"
-        #"tfp_300n_60q_5l_5u_10a_40d.txt"
+        "tfp_300n_60q_5l_5u_10a_40d.txt"
         )
+    test(instance)
 
     with open(instance) as file:
         p = Problem.from_textIO(file)
 
     c_heuristic = (
         #"balanced"
-        "constrained"
+        #"constrained"
         #"hybrid"
-        #"greedy"
+        "greedy"
         )
 
     p.construction_neighbourhood(c_heuristic)
 
-    #print("empty solution")
-    #s = p.empty_solution()
-
+    s = p.empty_solution()
+    #s = p.random_solution()
     #s = p.worst_solution()
 
-    #print("random")
-    s = p.random_solution()
+    s = alg.greedy_construction(p)
+    #s = alg.beam_search(p,s,10)
+    #s = alg.grasp(p, budget=10) #<- wont work :(
 
-    print(f"{c_heuristic} constructed solution")
-    #s = alg.greedy_construction(p)
-    s = alg.beam_search(p)
-    #s = alg.grasp(p, budget=10) <- wont work :(
-
-    print(s)
-
-    #print(s)
     l_heuristic = (
         #"random"
         #"constrained"
@@ -588,16 +614,15 @@ if __name__ == "__main__":
         "greedy"
         )
     
-    p.local_neighbourhood(l_heuristic)
+    
 
-    t0 = time.time()
-    print(f"{l_heuristic} improvement solution")
-    #s = alg.best_improvement(p, s)
-    s = alg.first_improvement(p,s)
+    p.local_neighbourhood("greedy")
+
+    
+    s = alg.best_improvement(p, s)
+    #s = alg.first_improvement(p,s)
     #s = alg.sa(p, s, budget=5.0, init_temp=50.0)
 
-    print(s)
-    print(f"Is feasible: {s.is_feasible()}")
-    print(f"Execution time: {time.time()-t0}")
+    
     with open("solution.sol", "w") as out:
         out.write(" ".join(str(t) for t in s.assignments) + "\n")
