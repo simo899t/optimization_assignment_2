@@ -1,5 +1,6 @@
 from roar_net_api.operations import (SupportsCopySolution,
-                          SupportsLowerBound)
+                                     SupportsLowerBound)
+
 class Solution(SupportsCopySolution, SupportsLowerBound):
     def __init__(
         self,
@@ -21,26 +22,6 @@ class Solution(SupportsCopySolution, SupportsLowerBound):
     def lower_bound(self) -> float:
         return self.lb
 
-
-    def __eq__(self, other: Solution):
-        return (self.problem     == other.problem     and 
-                self.assignments == other.assignments and 
-                self.team_labels == other.team_labels and 
-                self.team_sizes  == other.team_sizes  and 
-                self.lb          == other.lb)
-
-    def __repr__(self): # repr for printing
-        return (
-            f"Solution(\n"
-            f"  assignments={self.assignments!r},\n"
-            #f"  num_students={len(self.assignments)}\n"
-            f"  team_labels={self.team_labels!r},\n"
-            f"  team_sizes={self.team_sizes!r},\n"
-            #f"  num_teams={len(self.team_sizes)!r},\n"
-            f"  cost={self.lb!r}\n"
-            f")"
-        )
-
     def copy_solution(self) -> Self: # copy
         return Solution(
             self.problem,
@@ -51,9 +32,24 @@ class Solution(SupportsCopySolution, SupportsLowerBound):
         )
 
     def is_feasible(self) -> bool:
+        """
+        Returns true if the solution is feasible
+        """
         if any(t == -1 for t in self.assignments):
             return False
         return all(
             self.problem.min_size <= s <= self.problem.max_size
             for s in self.team_sizes
+        )
+
+    def __repr__(self): # repr for printing
+        return (
+            f"Solution(\n"
+            #f"  assignments={self.assignments!r},\n"
+            #f"  num_students={len(self.assignments)}\n"
+            #f"  team_labels={self.team_labels!r},\n"
+            #f"  team_sizes={self.team_sizes!r},\n"
+            #f"  num_teams={len(self.team_sizes)!r},\n"
+            f"  cost={self.lb!r}\n"
+            f")"
         )

@@ -5,17 +5,17 @@ from roar_net_api.operations import (SupportsConstructionNeighbourhood,
 from typing import Self, TextIO
 from .Solution import Solution
 from .AddNeighbourhood import AddNeighbourhood
-from .SwitchNeighbourhood import SwitchNeighbourhood
+from .SwapNeighbourhood import SwapNeighbourhood
 import random
 class Problem(
     SupportsConstructionNeighbourhood[AddNeighbourhood],
-    SupportsLocalNeighbourhood[SwitchNeighbourhood],
+    SupportsLocalNeighbourhood[SwapNeighbourhood],
     SupportsEmptySolution[Solution],
     SupportsRandomSolution[Solution]):
     
     def __init__(
         self,
-        n_members: int,
+        n_students: int,
         n_teams: int,
         weights: list[int],
         attributes: list[list[int]],
@@ -23,79 +23,74 @@ class Problem(
         min_size: int,
         max_size: int,
     ):
-        self.n_members = n_members
+        self.n_students = n_students
         self.n_teams = n_teams
         self.weights = weights
         self.attributes = attributes
         self.disagreements = disagreements
         self.min_size = min_size
         self.max_size = max_size
-        self.c_nbhood = None
-        self.l_nbhood = None
 
         # precompute disagreement adjacency
-        self.disagrees_with = [set() for _ in range(n_members)]
+        self.disagrees_with = [set() for _ in range(n_students)]
         for a, b in disagreements:
             self.disagrees_with[a].add(b)
             self.disagrees_with[b].add(a)
 
-    def construction_neighbourhood(self, heuristic= "greedy") -> AddNeighbourhood:
-        if self.c_nbhood is None:
-            self.c_nbhood = AddNeighbourhood(self,heuristic)
-        return self.c_nbhood
+    def construction_neighbourhood(self, neighbourhoodType=None) -> AddNeighbourhood:
+        return AddNeighbourhood(self, neighbourhoodType or "allFeasible")
 
-    def local_neighbourhood(self, heuristic="greedy") -> SwitchNeighbourhood:
-        if self.l_nbhood is None:
-            self.l_nbhood = SwitchNeighbourhood(self, heuristic)
-        return self.l_nbhood
-
+    def local_neighbourhood(self) -> SwapNeighbourhood:
+        return SwapNeighbourhood(self)
+        
     def empty_solution(self) -> Solution:
+        """
+        Create as empty solution
+        """        
         n_attributes = len(self.weights)
         return Solution(
             problem=self,
-            assignments=[-1] * self.n_members,
+            assignments=[-1] * self.n_students,
             team_labels=[[dict() for _ in range(n_attributes)] for _ in range(self.n_teams)],
             team_sizes=[0] * self.n_teams,
             lb=0,
         )
     
     def random_solution(self) -> Solution:
+        """
+        Create as random feasible solution
+        """
         n_attributes = len(self.weights)
-        assignments = [random.randrange(self.n_teams) for _ in range(self.n_members)]
+        assignments = [-1] * self.n_students
         team_labels = [[dict() for _ in range(n_attributes)] for _ in range(self.n_teams)]
         team_sizes = [0] * self.n_teams
         lb = 0
-        for member, team in enumerate(assignments):
-            team_sizes[team] += 1
-            for a, label in enumerate(self.attributes[member]):
-                counts = team_labels[team][a]
-                if counts.get(label, 0) == 0:
-                    lb += self.weights[a]
-                counts[label] = counts.get(label, 0) + 1
-        
-        return Solution(
-            problem=self,
-            assignments=assignments,
-            team_labels=team_labels,
-            team_sizes=team_sizes,
-            lb=lb,
-        )
-    
-    def worst_solution(self) -> Solution:
-        n_attributes = len(self.weights)
 
-        assignments = [0] * self.n_members
+        order = list(range(self.n_students))
+        random.shuffle(order)
 
-        team_labels = [[dict() for _ in
-                         range(n_attributes)] for _ in range(self.n_teams)]
-        team_sizes = [0] * self.n_teams
+        for s in order:
+            team_order = list(range(self.n_teams))
+            random.shuffle(team_order)
 
-        lb = 0
+            chosen = None
+            for t in team_order:
+                if team_sizes[t] >= self.max_size:
+                    continue
+                if any(assignments[other] == t for other in self.disagrees_with[s]):
+                    continue
+                chosen = t
+                break
 
-        for member in range(self.n_members):
-            team_sizes[0] += 1
-            for a, label in enumerate(self.attributes[member]):
-                counts = team_labels[0][a]
+            if chosen is None:
+                for t in team_order:
+                    if team_sizes[t] < self.max_size:
+                        chosen = t
+
+            assignments[s] = chosen
+            team_sizes[chosen] += 1
+            for a, label in enumerate(self.attributes[s]):
+                counts = team_labels[chosen][a]
                 if counts.get(label, 0) == 0:
                     lb += self.weights[a]
                 counts[label] = counts.get(label, 0) + 1
@@ -120,7 +115,7 @@ class Problem(
                     return stripped.split()
             raise ValueError("Unexpected end of input")
 
-        n_members, n_teams, n_attributes, n_disagreements, min_size, max_size = (
+        n_students, n_teams, n_attributes, n_disagreements, min_size, max_size = (
             int(x) for x in next_data_line()
         )
 
@@ -131,11 +126,11 @@ class Problem(
             )
 
         attributes: list[list[int]] = []
-        for _ in range(n_members):
+        for _ in range(n_students):
             row = [int(x) for x in next_data_line()]
             if len(row) != n_attributes:
                 raise ValueError(
-                    f"Expected {n_attributes} attribute labels per member, got {len(row)}"
+                    f"Expected {n_attributes} attribute labels per students, got {len(row)}"
                 )
             attributes.append(row)
 
@@ -148,7 +143,7 @@ class Problem(
             disagreements.append((a, b))
 
         return cls(
-            n_members,
+            n_students,
             n_teams,
             weights,
             attributes,
