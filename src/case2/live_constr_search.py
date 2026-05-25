@@ -79,7 +79,7 @@ class Solution:
         return None
     
     def lower_bound(self):
-        return -self.ubea
+        return -self.ub
 
 
 # In[28]:
@@ -116,19 +116,6 @@ class AddMove:
         
     def __str__(self):
         return f"add node {self.v} to clique {self.c}"
-    
-    def _upper_bound_increment(self, solution):
-        assert self.v == len(solution.clique) and self.c <= solution.k
-        
-        if self.ub_incr is None:
-            self.ub_incr = 0
-            for v in range(len(solution.clique)):
-                w = solution.problem.mx[v][self.v]
-                if solution.clique[v] == self.c and w < 0:
-                    self.ub_incr += w
-                elif solution.clique[v] != self.c and w > 0:
-                    self.ub_incr -= w
-        return self.ub_incr
     
     def lower_bound_increment(self, solution):
         return -self._upper_bound_increment(solution)
