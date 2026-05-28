@@ -130,6 +130,11 @@
 #let bool = [Bool]
 #let tran(x) = $#x^sans(T)$
 #let Astar = $A^star$
+#let leq = $<=$
+#let geq = $>=$
+#let nsum = $sum_(i=1)^n$
+#let msum = $sum_(i=1)^m$
+
 // --- Calculus notation ---
 #let dx = $dif x$
 #let dy = $dif y$

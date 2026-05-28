@@ -39,12 +39,13 @@
     ]
   },
 )
-
+// STIX Two Math
+// OldStandard-Math
 // ─── Typography ───────────────────────────────────────────────────────────────
-#set text(font: "Computer Modern", size: 11pt)
+#show math.equation: set text(font: "New Computer Modern Math")
+#set text(font: "New Computer Modern", size: 12pt)
 #set par(justify:true,leading: 0.65em, spacing: 2em, first-line-indent: 0pt)
 #show figure.where(kind: raw): set figure(supplement: [Code snippet]) // <- sæt til whatever
-
 // Number equations
 #set math.equation(numbering: "(1)")
 #let lb = $l b$
@@ -79,73 +80,52 @@
   #v(0.4em)
   #line(length: 100%, stroke: 0.8pt)
 ]
-#let leq = $<=$
-#let geq = $>=$
 #pagebreak()
 #outline()
 // ─── Case 1 ───────────────────────────────────────────────────────────────────
 #pagebreak()
+#set math.mat(delim: "[")
 = Case 1
 Let $ P = {x in RR^n | tran(bold(a)_i) x <= b_i, i = 1, dots, m  } $
 be a nonempty, bounded polyhedron with nonempty interior.
 
 == Task 1 - Defining the center
-The center $x^* in P$ is defined by creating barrier functions that penalize by getting close the "sides" of the polyhedron, and then minimizing over $x$:
+The center $x^* in P$ is defined by creating barrier functions that penalize by getting close the "sides" of the polyhedron, and then minimizing over $bold(x)$:
+This is done by rewriting the linear constraint $tran(bold(a))_i bold(x) <= b_i$ to $s_i = tran(bold(a))_i bold(x)- b_i$ such that the variable $s_i$ describes the slack, or distance to the barrier. This can be made into a function whose output is the $bold(x)$ "closeness" to violating each constraint: 
+$ g_i (bold(x))&=tran(bold(a))_i bold(x) - b_i    $
+This is then turned into a log barrier, such that the closer the point is to the constraint, the penalty gets exponentially larger, allowing for a complete unconstrained problem:
 
-$ min_bold(x) (-sum_i log(-tran(bold(a))_i bold(x) - b_i   ) ) $
-$ min_bold(x) f(bold(x)) quad s.t. space g(bold(x)) leq 0  $
+$ min_(bold(x)in RR^n) f(bold(&x)) quad  \
+ f(bold(&x))= -sum_(i=1)^m log(-g_i (bold(x)) )
+\ g_i (bold(&x))=tran(bold(a))_i bold(x) - b_i   
+$
 This minimization satisfies all the given criterium of:
- + It lies strictly within $P$, since the closer the inner term gets to zero, (i.e the slack value decreases) the penalty explodes towards infinity, and at last becomes undefined at 0. This also means the domain of the function is $bold(x) leq g(bold(x))$.
- + It favous all the constraints equally (none are controlled with a constant) and the minimizing of $x$ will find the point that minimizes _all_ the constraints, i.e. gets as far away from all the sides as possible, ending in the middle of the polyhedron.
+ + It lies strictly within $P$, since the closer the inner term gets to zero, (i.e the slack value decreases) the penalty explodes towards infinity because of the log barrier, and at last becomes undefined at $0^+$. The domain of the function therefore needs to be:
+ $ bold(x) in D quad D={bold(x) in RR^n : g_i (bold(x)) < 0 "for " i=1,...,m} $
+ + It favors all the constraints equally (none are controlled with a constant) and the minimizing of $bold(x)$ will find the point that minimizes _all_ the constraints, i.e. gets as far away from all the sides as possible, ending in the middle of the polyhedron.
  + The log function is continuos on its domain. 
- 
-
- By proving that the function is convex and suitable for second order methods, all the requirements will be satisfied.
-
-+ Convex
-  \
-  The function is convex because it can be split into an inner affine function and an outer convex function, that with their composition by definition is convex:
-  
-  $ sigma(bold(x)) &= -(tran(bold(a))_i bold(x) - b_i)  \ 
-   phi(bold(x)) &= log(sigma(bold(x)))
-  $
-  Where since $sigma$ is affine, and $phi$ is convex
 
 
 
 
 
-\
-\
-\
-\
-\
-\
-The center of $P$ is defined by a minimization problem over the objective function:
-$ min_x f(x)  st g(x) <= 0 $
-Which is found be rewriting the linear constraint $tran(bold(a))_i bold(x) <= b_i$ to $s_i =b_i - tran(bold(a))_i bold(x)$ so the variable $s_i$ describes the slack, or distance to the barrier. 
-
-where $g_i (bold(x)) = tran(bold(a))_i bold(x) -b_i$ describes the slack, or distance to the barrier
-
-
-Lets rewrite the objective function using the standard log barrier:$ phi_rho (bold(x)) =f(bold(x))+ phi(bold(x)) $ 
-where $phi(bold(x)) =- sum_i log(-g_i (bold(x)))$
-
-This minimization problem ensures that steps towards a barrier is penalized, and thus finding a minimum $x^*$ (as far away from any barrier) will be an approximation of the center
-
-The objective function, while penalizing proximity to constraint boundaries (barriers), diverges to $oo$ as $-log(-g(bold(x))) -> oo$ as $g(bold(x)) to 0$.
-
+#pagebreak()
 == Task 2 - Analytical properties
 
-To compute $nabla f(bold(x))$, the function $f(bold(x))= - sum_i log(-g(bold(x)))$ will be differentiated using the chain rule. Since the sum element of the function can just be viewed as a repeated application of the sum rule, by differentiating the term in the sum, it can directly replace the original term, without further work. The $log(-g(bold(x)))$ term can be differentiated with the chain rule:
-$ g(bold(x)) &= tran(bold(a)_i) bold(x) - b_i\ 
-phi(bold(x))&= -g(bold(x)) = -(tran(bold(a))_i bold(x) -b_i ) \ 
-sigma(bold(x))&= log(bold(x)) \
-ddx phi(bold(x))&= - bold(a) \
-ddx sigma(bold(x))&=  1/bold(x) \
-ddx g(bold(x))&= ( - bold(a)_i ) / (-(tran(bold(a))_i bold(x) -b_i  )) = (  bold(a)_i ) / ((tran(bold(a))_i bold(x) -b_i  ))=   bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1) \
-nabla f(bold(x)) &= - sum_i  bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1)
+=== Computing the gradiens and the hessian
+
+To compute $nabla f(bold(x))$, the function $f(bold(x))= - sum_i log(-g_i (bold(x)))$ will be differentiated using the chain rule. Since the sum element of the function can just be viewed as a repeated application of the sum rule, differentiating the term in the sum, replaces all terms in the sum. The $log(-g_i (bold(x)))$ term can be differentiated with the chain rule:
+$ 
+phi(bold(x))&= -g_i (bold(x)) = -(tran(bold(a))_i bold(x) -b_i ) \ 
+z &= phi(bold(x))\
+sigma(z)&= log(z)  \
+(partial ) / (partial bold(x)) phi(bold(x))&= - bold(a)_i \
+ddz sigma(z)&=  1/z \
+(partial) / (partial bold(x)) sigma(phi(bold(x)))&= ( - bold(a)_i ) / (-(tran(bold(a))_i bold(x) -b_i  )) = (  bold(a)_i ) / ((tran(bold(a))_i bold(x) -b_i  ))=   bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1) \
+nabla f(bold(x)) &= - msum  bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1)
 $
+
+
 This describes the gradient of the function $f(bold(x))$, i.e the change for each $x$ value in $bold(x)$. The hessian will then be the change for each $x$, if it is differentiated with either itself, or another $x in bold(x)$:
 $ nabla^2f(bold(x))= mat(
   (partial^2f) / (partial x_1^2),  ... , (partial^2f) / (partial x_1 partial x_n); 
@@ -154,28 +134,58 @@ $ nabla^2f(bold(x))= mat(
 )
   $
 
-$bold(x) in RR^n$ is given, and then for notation it is assumed that $A in RR^(n times m)$. Therefore $nabla f(bold(x))$ can be rewritten to represent this:
-$ (partial f) / (partial x_k) &= - sum_i^n a_(i,k)  ((sum_j^m a_(i,j) x_j) + b_i)^(-1) $ 
-Where it can be differentiated again, with respect to a new $x_p$ by using the chain and power rule:
 
-$ (partial f)/(partial x_p) [(sum_j^m a_(i,j) x_j) + b_i] &= a_(i,p) \
-(partial f) / (partial x_p) [x^(-1)] &= - 1/(x^2) \
-(partial f) / (partial x_k partial x_p) &= - sum_i^n -  ((a_(i,k) a_(i,p)) / ((sum_j^m a_(i,j) x_j )-b_i)^2)\ &=  sum_i^n   (a_(i,k) a_(i,p)) / ((sum_j^m a_(i,j) x_j )+b_i)^2  \
-&= 
-$
-This can also be written instead of scalar form, matrix form:
+#pagebreak()
+Therefore the function can be differentiated again using the chain rule:
 $ 
-ddx [x^(-1)] &= -1(bold(x))^(-2) \
-ddx [tran(bold(a))_i bold(x) +b_i ] &= tran(bold(a))_i \
-ddx [- sum_i bold(a)_i (tran(bold(a))_i bold(x) +b_i )^(-1)] &= sum_i (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)-b_i)^2 \
+phi(bold(x))&=(tran(bold(a))_i bold(x)-b_i) \
+z &= phi(bold(x))\
+sigma(z) &= (z)^(-1) \
+(partial) / (partial z) sigma(z) &= -1(z)^(-2) quad quad &|" Outer term" \
+ (partial) / (partial bold(x)) phi(bold(x)) &= tran(bold(a)_i) quad quad &| " Inner term"\
+ (partial) / (partial bold(x))  sigma(phi(bold(x))) &= msum (tran(bold(a))_i )/ (tran(bold(a))_i bold(x)-b_i)^2 \
+ &= msum (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)-b_i)^2 quad quad &|" Multiply the "bold(a_i) "constant"\
 $
+Meaning:
+$ nabla^2f(bold(x)) = msum (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)-b_i)^2 $
+
+#pagebreak()
+=== Proving convexity 
+
+By proving that the function is convex and suitable for second order methods, all the requirements of task 1 will be satisfied.
+==== Using affine and convex properties
 
 
-== Proving Convexity
-The function can be proved convex using multiple methods. The first is simply to recognize that the function is a combination of a convex function $log(x)$ (log function are concave, but since the entire function is a sum of these, with a negation in front, they become convex) and affine function $tran(bold(a))_i bold(x) -b_i$. From the following definition:
+
+The function $-msum log(-tran(bold(a)_i) bold(x) -b_i)$ can be split into a sum with non-negative scalar, an inner affine function and an outer convex function. 
+
+$ 
+-msum phi_i (bold(x)) &=msum 1 dot (-phi_i (bold(x))) qquad & "Non negative scalar" \ sigma_i (bold(x)) &= -(tran(bold(a))_i bold(x) - b_i) qquad &"Affine"  \ 
+   phi_i (bold(x)) &= -log(sigma_i (bold(x))) qquad &"Convex"
+  $
+ By the following propositions;
+
+#definition(title: [Proposition: Convexity under sums], [
+    If ${f_i}_(j in {1,dots,m})$ are convex and $alpha_j_(j in {1,dots,m}) $ is non-negative, then $summ(j=1,m,alpha_j f_j)$ and #h(3em) $max_(j in {1,dots,m}) f_j$  are convex
+  ])
+#definition(title: [Proposition: Convexity on composition], [
+    If $f: RR^d -> RR$ is convex and $A:RR^d -> RR^d$ is affine then $f compose A:RR^d -> RR$ is convex
+  ])
+
+  And since $sigma$ is affine, and $log(x)$ is convex, $f(x) = -sum phi$ is also convex.
+  This can be seen since the function is a combination of a convex function $log(x)$ (log function are concave, but since the entire function is a sum of these, with a negation in front, they become convex) and affine function $tran(bold(a))_i bold(x) -b_i$.
+
+
+#pagebreak()
+=== Using semi-positive definiteness 
+
+It could also be argued that if the hessian is semi-positive definite that it is convex @Nocedal[p. 30]:
+$ nabla^2f(bold(x)) succ.eq 0 quad forall bold(x) in D $
+Where $D$ needs to be a convex set. Since the inequality constrains can be defined as half-spaces, the intersections of the half-spaces forms a
+convex set as shown on @convex_set.
 
 #figure(
-  canvas(length: 1.5cm, {
+  canvas(length: 1.3cm, {
     import draw: *
 
     // Extended lines crossing the full canvas
@@ -186,42 +196,46 @@ The function can be proved convex using multiple methods. The first is simply to
     line((4, 0), (0.5, 3.5), stroke: s)
     line((1.5, 0), (1.5, 3.5), stroke: s)
 
-    // Concave polygon (no fill)
+    // Concave polygon (black outline, no fill)
     line((1.5, 0.5), (3.5, 0.5), (3.5, 2.5), (2.5, 1.5), (1.5, 2.5),
-      close: true, fill: none, stroke: blue.darken(20%) + 1.2pt)
+      close: true, fill: none, stroke: black + 1.2pt)
 
-    // Convex intersection triangle (no fill)
+    // Convex intersection triangle (filled red)
     line((1.5, 0.5), (3.5, 0.5), (2.5, 1.5),
-      close: true, fill: none, stroke: red.darken(10%) + 1.5pt)
+      close: true, fill: red.lighten(40%), stroke: red.darken(10%) + 1.5pt)
   }),
-  caption: [Extending the sides of a concave polygon (blue) to infinite lines; their half-plane intersection (red) is always convex.]
-)
+  caption: [For any concave polygon (black) with infinite lines (half planes). Half-plane intersection (red) is always convex.]
+)<convex_set>
 
-
-
-$ "if" f: RR^d to RR "is convex and" A: RR^d to RR^d "is affine then" f compose A: RR^d to RR "is convex" $
-Then we know that the function is convex. It could also be argued that if the hessian is semi-positive definite that it is convex @Nocedal[p. 30]:
-$ nabla^2f(bold(x)) succ.eq 0 quad forall bold(x) in D $
-Where $D$ needs to be a convex set. Since the polyhedron is a bounded polyhedron with a non-empty interior, all $bold(x) in D$ satisfies this property.\
 The rest can be found by looking at the hessian, and proving that all the entries have to be positive. A matrix is semi-positive definite if it is square and symmetric (which the hessian is by definition) and:
-$ tran(bold(x))A bold(x) geq 0 "for all" x != 0 $
+$ tran(bold(v))A bold(v) geq 0 "for all" bold(v) != 0 $
 
 \ Looking at the hessian:
 
-$ sum_i (bold(a)_i tran(bold(a))_i) / (tran(bold(a))_i bold(x) -b_i)^2 $
+$ msum (bold(a)_i tran(bold(a))_i) / (tran(bold(a))_i bold(x) -b_i)^2 $
 It can be observed that the bottom element is squared, thereby guaranteeing positivity. Therefore this can be rewritten as a constant that is multiplied to the other term:
 $  $
 
-$ sum_i c_i (bold(a)_i tran(bold(a))_i)  $
-Since $bold(a)_i tran(bold(a))_i in RR^(n times n)$, is a matrix, the positive semidefinte property can be tested:
-$ &sum_i c_i (tran(bold(v))bold(a)_i tran(bold(a))_i bold(v)) \
-&sum_i c_i ((tran(bold(v))bold(a)_i)( tran(bold(a))_i bold(v))) \
+$ msum c_i (bold(a)_i tran(bold(a))_i)  $
 
-&sum_i c_i (k_i)^2 geq 0\
+#pagebreak()
+Since $bold(a)_i tran(bold(a))_i in RR^(n times n)$, is a matrix, the positive semi-definite property can be tested:
+$ &msum c_i (tran(bold(v))bold(a)_i tran(bold(a))_i bold(v)) \
+&msum c_i ((tran(bold(v))bold(a)_i)( tran(bold(a))_i bold(v))) quad "The dot product is symmetric" \
+
+&msum c_i (k_i)^2 geq 0 \
 $
 Which proves that the function is positive semidefinte, and thereby convex.
 
 === Minimizer
+A local minimizer can be defined as:
+#definition(title: [Definition: local minimizer], [ A point $bold(x)^*$ is a _local minimum_ (or is a local minimizer) if there exists a $delta>0$ such that $f(bold(x)^*) leq f(bold(x))$ for all $bold(x)$ with $||bold(x)-bold(x)^*||<delta$.
+  ])
+Which means that for a specific point $bold(x)^* $within a region, $f(bold(x)^*)$ is smaller than all other $f(bold(x))$. This can be argued trough an understanding of the properties of the function. First, the function is continuos and convex, meaning it's overall shape is that of a ball. The domain is strictly bounded within this "bowl", and the function value goes to infinity as the point moves closer to the edge of the "bowl". It can be further argued that this is a global minimizer, not only from the "bowl" analogy, but trough properties. If the previous proposition of a local minimizer is accepted, the following definition:
+
+#definition(title: [Definition: Local Minimizers in Convex Function], [ Assume that $f :RR^n to RR$ is convex, then $bold(x)^*$ is a global minimizer of $f$ if and only if it is a local minimizer. If in addition $f$ is differentiable, then $bold(x^*)$ is a global minimizer of $f$ if and only if it is a stationary point of $f$, ie., $nabla f(bold(x^*))=0$
+  ])
+Using this property, any local minimizer of a convex function, is a global minimizer.
 
 
 #pagebreak()
@@ -234,7 +248,7 @@ Task 3.1 will first be solved explicitly, and thereafter a python program will b
 $ f(bold(x)) = - sum_i^5 log(-g_i (bold(&x))) \ 
 "Where" g_i (bold(&x)): \
 
-g_1 (bold(&x)) = 1x_1 + 0x_2 - 1 \
+ g_1 (bold(&x)) = 1x_1 + 0x_2 - 1 \
 g_2 (bold(&x)) = 0x_1 + 1x_2 - 1 \
 g_3 (bold(&x)) = (-1)x_1 + 0x_2 - 1 \
 g_4 (bold(&x)) = 0x_1  -1x_2 - 1 \
@@ -244,9 +258,9 @@ $
 The Newton method for multivariate functions can be described in updates:
 $ bold(x)_(i+1) = bold(x)_i - (nabla^2f (bold(x)_i))^(-1) nabla f(bold(x)_i) $
 
-With first the hessian and inverse of the hessian being calculated:
+Here, one stop will be done manually, and then rest of the iterative steps will be done using a python program. First, the hessian and inverse of the hessian can be calculated:
 
-$ sum_i (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)+b_i)^2 \
+$ sum_i (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)-b_i)^2 \
 
 ( vec(1,0, delim:"[") dot mat(1,0, delim:"[") ) / (mat(1,0, delim:"[") dot vec(0, 0, delim: "[")-1)^2 
 =  mat(delim:"[", 1,0;0,0) dot (1) / (-1)^2 = mat(delim: "[", 1, 0; 0, 0)
@@ -274,11 +288,11 @@ $ sum_i (bold(a)_i tran(bold(a))_i)/ (tran(bold(a))_i bold(x)+b_i)^2 \
 \
 mat(delim: "[", 1, 0; 0, 0) + mat(delim: "[", 0, 0; 0, 1) + mat(delim: "[", 1, 0; 0, 0) + mat(delim: "[", 0, 0; 0, 1) +mat(delim: "[", (1)/(-1.5)^2, (1)/(-1.5)^2; (1)/(-1.5)^2, (1)/(-1.5)^2)   = mat(delim:"[", 2.44, 0.44; 0.44, 2.44)
 \
-H^(-1)= (1)/((2.44 dot 2.44) - (0.44 dot 0.44)) mat(delim: "[", 2.44, -0.44; -0.44, 2.44) =  mat(delim: "[", 0.41, -0.07; -0.07, 0.41)
+(nabla^2f)^(-1)= (1)/((2.44 dot 2.44) - (0.44 dot 0.44)) mat(delim: "[", 2.44, -0.44; -0.44, 2.44) =  mat(delim: "[", 0.41, -0.07; -0.07, 0.41)
 $
 
 And the gradient:
-$ - sum_i (  bold(a)_i ) / ((tran(bold(a))_i bold(x) -b_i  )) \
+$ - msum (  bold(a)_i ) / ((tran(bold(a))_i bold(x) -b_i  )) \
 -( 
 vec(delim: "[", -1, 0) +
 vec(delim: "[", 0, -1) +
@@ -291,27 +305,29 @@ And then the newton step:
 $
 bold(x)_("new") = vec(delim: "[", 0, 0) - mat(delim: "[", 0.41, -0.07; -0.07, 0.41)  dot vec(delim: "[", 0.67, 0.67) = vec(delim: "[", -0.23, -0.23)
 $
+
+#pagebreak()
 The slack for this point would be:
 $ 
 
 g_1 (bold(&x)) = 1x_1 + 0x_2 - 1 = (-0.23) - 1 = -1.23  \
 g_2 (bold(&x)) = 0x_1 + 1x_2 - 1 = (-0.23) - 1 = -1.23  \
-g_3 (bold(&x)) = (-1)x_1 + 0x_2 - 1 = 0.23 - 1 = 0.77 \
-g_4 (bold(&x)) = 0x_1 + (-1)x_2 - 1 = 0.23 - 1 = 0.77 \
+g_3 (bold(&x)) = (-1)x_1 + 0x_2 - 1 = 0.23 - 1 = -0.77 \
+g_4 (bold(&x)) = 0x_1 + (-1)x_2 - 1 = 0.23 - 1 = -0.77 \
 g_5 (bold(&x)) = 1x_1 + 1x_2 - 1.5 = (-0.23) + (-0.23) - 1.5 = -1.96\
 
 
 $
-Since the slack is the distance to each barrier, to get the total slack, the sum of their absolute value will give the total distance from each barrier to the point, and taking the average of this yields the average distance to a barrier from the center point:
+Since the slack is the distance to each barrier, to get the minimum slack, the absolute value of the smallest value is the minimum slack:
 
-$ abs(-1.23)+ abs(-1.23)+ abs(0.77)+ abs(0.77)+ abs(-1.96) = 5.96
-\
-5.96/5=1.19
+$ abs(-0.77)= 0.77
 $
 
-This can also be expressed in code, using autograd to compute the gradient and hessian:
+#pagebreak()
+This can also be expressed in code (@obj_func1), using autograd to compute the gradient and hessian:
 
-```py
+#figure(
+  ```py
 def obj_func(x, order=1):
     def f(x):
         return -(
@@ -338,37 +354,449 @@ def obj_func(x, order=1):
             return slack(x), f(x), grad(f)(x)
         case 2:
             return slack(x), f(x), grad(f)(x), jacobian(grad(f))(x)
-```
+```,caption: [The objective function defining both the objective and an array of the slacks of each inequality constraints. It return the slack $s(x)$, the gradient $nf$ and the hessian $nabla^2f$]
+)<obj_func1>
 
-That one can then use the newton method:
+That one can then use the newton method as shown on @one_step:
 
-```py
+#figure(
+  ```py
 def newton_method(x):
     _, _, grad, hes = obj_func(x, order=2)
     return x - anp.linalg.inv(hes) @ grad
-```
+```, caption: [One step of the newton method]
+)<one_step>
+
+#pagebreak()
 Using this to test the point $bold(x)= vec(delim: "[", 0,0)$ yields:
 
-```output
+#figure(
+  ```output
 Hessian for original x: [[2.44444444 0.44444444]
  [0.44444444 2.44444444]]
 New x after newton method: [-0.23076923 -0.23076923]
-Slack at new x: [-1.23076923 -1.23076923 -0.76923077 -0.769230
-77 -1.96153846]
-```
-Which matches the earlier calculations. The original point in red, and the new point in green can then be visualized:
+Obj value for x with newton method: -0.5642792953243507
+Slack for x with newton method: [-1.23076923 -1.23076923 -0.76923077 -0.76923077 -1.96153846]
+```,caption: [Output after 1 iteration/step of the newton method as implemented on @one_step]
+)
+Which matches the earlier calculations. The original point in red, and the new point in green can then be visualized (@feasible_reg):
 #figure(
   
-  image("/assest/image (4).png"),
-  caption: [The feasible region shown in blue, with the original (red) and new x (green)]
+  image("assets/image4.png"),
+  caption: [The feasible region shown in blue, with the original $bold(x)$ (red) and updated $bold(x)$ (green)]
+)<feasible_reg>
+But since just doing one iteration is not guaranteed to be the center point, the newton method can be modified to incorporate stopping criterions, such as max iterations or $|f(bold(x_(i+1))) - f(bold(x_i)) |< delta $:
+#figure(
+  image("assets/newton_algorithm.png", width: 20em),
+  caption: [The Newton Method algorithm in pseudocode]
+)<newt_psudo>
+#figure(
+  ```py
+def newton_method_stop(x, crit, max_iter):
+    i = 0
+    while i < max_iter :
+        _, _, grad, hes = obj_func(x, order=2)
+        x_new = x - anp.linalg.inv(hes) @ grad
+        if math.dist(x_new, x) <= crit:
+            return x_new
+        else:
+            x = x_new
+        i += 1
+    return x
+```,caption: [Newton method implemented as from @newt_psudo]
+)<newt_impl>
+Running this (@newt_impl) with `max_iter=200` and `crit=0.001` yields:
+#figure(
+  ```output
+New x after newton method with stop: [-0.23851648 -0.23851648]
+Obj value for x with newton method with stop: -0.5644522715736566
+Slack for x after newton method with stop: [-1.23851648 -1.23851648 -0.
+76148352 -0.76148352 -1.97703296]
+
+Distance from x after first itertaion, to after full newton method: 0.01095626629433487
+Differece in objective value after first x, to after full newton method: 0.0001729762493059006
+
+```, caption: [Output after the iterated newton method (@newt_impl)]
+)
+#pagebreak()
+Here the center point is found to be
+$ bold(x)^*=#[`[-0.23851648 -0.23851648]`] $ 
+with the minimum slack being = $ abs(-0.76148352) = 0.76148352. $
+This can then be visualized aswell:
+
+#figure(
+  image("assets/x_newton_with_stop.png", width : 20em),
+  caption: [Visualization of the new center after iterative Newton Method \ (@newt_impl)]
+)<visual_newt>
+And zoomed in:
+#figure(
+  
+  image("assets/zoomed_in.png"),
+  caption: [Zooming closer to the new center-point from @visual_newt]
+)
+
+#pagebreak()
+=== Task 3.2
+
+The change imposed on the last constraint can be expressed as:
+$ f(bold(x)) &= (- sum_i^4 log(-g_i (bold(x)))) -log(-(gam tran(bold(a))_5 bold(x) - gam 1.5))\ 
+&= (- sum_i^4 log(-g_i (bold(x)))) -(log(gam) + log(-(tran(bold(a))_5 bold(x) - 1.5)))\ quad quad 
+$
+And since $log(gam)$ is a constant, it disappears when we take the derivative, leaving the feasible and solution set unchanged. This holds for all values of $gam$. The actual value of the objective function does change, since the $gam$ values are still used in calculating them.
+
+The code can be easily modified to take the $gam$ into account by modifying the objective function:
+#codly(highlights: (
+  (line: 8, start: 31, end: 37, fill: red),
+  (line: 8, start: 48, end: 54, fill: red),
+  (line: 9, start: 24, end: 32, fill: red),
+  (line: 17, start: 22, end: 28, fill: red),
+  (line: 17, start: 39, end: 45, fill: red),
+  (line: 17, start: 49, end: 57, fill: red)
+))
+#figure(
+  ```py
+def obj_func_modified(x, order=1, gam=1):
+    def f(x):
+        return -(
+            anp.log( -(x[0] * 1 + x[1] * 0 - 1) ) + 
+            anp.log( -(x[0] * 0 + x[1] * 1 - 1) ) + 
+            anp.log( -(x[0] * (-1) + x[1] * 0 - 1) ) + 
+            anp.log( -(x[0] * 0 - x[1] * 1 - 1) ) + 
+            anp.log( -(x[0] * (1*gam) + x[1] * (1*gam) 
+                     - (1.5*gam)))  
+            )
+    def slack(x):
+        return anp.array(
+            [-(x[0] * 1 + x[1] * 0 - 1),
+            -(x[0] * 0 + x[1] * 1 - 1),
+            -(x[0] * (-1) + x[1] * 0 - 1),
+            -(x[0] * 0 - x[1] * 1 - 1), 
+            -(x[0] * (1*gam) + x[1] * (1*gam) - (1.5*gam))]
+        )
+
+    match order:
+        case 0:
+            return slack(x), f(x)
+        case 1:
+            return slack(x), f(x), grad(f)(x)
+        case 2:
+            return slack(x), f(x), grad(f)(x), jacobian(grad(f))(x)
+```,caption: [Objective function, with gamme highlighted in $redmath(#[red])$]
+)
+And executing this with $gam=10$ yields:
+#figure(
+  ```output
+x with gam=10: [-0.23851648 -0.23851648]
+Obj value for x with gam=10: -0.5644522715736567
+Slack for x with gam=10: [-1.23851648 -1.23851648 -0.76148352 -0.76148352 -1.97703296]
+Distance from x after first itertaion, to after full newton method: 7.850462293418876e-17
+Differece in objective value after first x, to after full newton method: -1.1102230246251565e-16
+```,caption: [Output after the iterated newton method with gamma modification. (@newt_impl)]
+)
+Showing that the 2 points are identical (the only difference is computing noise python). This can also be visualized:
+
+#figure(
+  image("assets/gam10.png"),
+  caption: [Newton method with $gam=10$, the red dot being the starting point, green is after the newton method with no $gam$ and blue $times$ being the newton method with $gam=10$.]
+)
+#pagebreak()
+And zooming in (a lot) does not change that they overlap:
+#figure(
+  image("assets/gam10_zoomed.png"),
+  caption: [Newton method with $gam=10$, green is after the newton method with no $gam$ and blue $times$ being the newton method with $gam=10$.]
+)
+
+This can then be done for all the given $gam$ values, yielding the visualization:
+#figure(
+  image("assets/all_gamgam.png"),
+  caption: [Visualization of different $gam$ values.]
+)
+#pagebreak()
+This had the following output:
+#figure(
+  ```output
+  --- Results for gam=0.1 ---
+x with gam=0.1: [-0.23851648 -0.23851648]
+Obj value for x with gam=0.1: 1.7381328214203888
+Distance to x_newton_stop: 7.850462293418876e-17
+Difference in objective value from x_newton_stop: 2.3025850929940455
+
+--- Results for gam=1 ---
+x with gam=1: [-0.23851648 -0.23851648]
+Obj value for x with gam=1: -0.5644522715736566
+Distance to x_newton_stop: 0.0
+Difference in objective value from x_newton_stop: 0.0
+
+--- Results for gam=10 ---
+x with gam=10: [-0.23851648 -0.23851648]
+Obj value for x with gam=10: -2.8670373645677025
+Distance to x_newton_stop: 7.850462293418876e-17
+Difference in objective value from x_newton_stop: -2.302585092994046
+
+--- Results for gam=100 ---
+x with gam=100: [-0.23851648 -0.23851648]
+Obj value for x with gam=100: -5.169622457561748
+Distance to x_newton_stop: 3.925231146709438e-17
+Difference in objective value from x_newton_stop: -4.605170185988092
+
+```,caption: [Output after the iterated newton method with gamma modification, using different $gam$ values. (@newt_impl)]
+)
+#pagebreak()
+=== Task 3.3
+Normalizing the last constraint is as simple as modifying the code:
+#codly(highlights: (
+  (line: 8, start: 59, end: 59, fill: red),
+  (line: 16, start: 40, end: 40, fill: red),
+))
+#figure(
+  ```py
+def obj_func_normalized(x, order=1, gam=1):
+    def f(x):
+        return -(
+            anp.log( -(x[0] * 1 + x[1] * 0 - 1) ) + 
+            anp.log( -(x[0] * 0 + x[1] * 1 - 1) ) + 
+            anp.log( -(x[0] * (-1) + x[1] * 0 - 1) ) + 
+            anp.log( -(x[0] * 0 - x[1] * 1 - 1) ) + 
+            anp.log( -(x[0] * (1*gam) + x[1] * (1*gam) - (1*gam)) )  
+            )
+    def slack(x):
+        return anp.array(
+            [-(x[0] * 1 + x[1] * 0 - 1),
+            -(x[0] * 0 + x[1] * 1 - 1),
+            -(x[0] * (-1) + x[1] * 0 - 1),
+            -(x[0] * 0 - x[1] * 1 - 1), 
+            -(x[0] * (gam*1) + x[1] * (1*gam) - 1)]
+        )
+
+    match order:
+        case 0:
+            return slack(x), f(x)
+        case 1:
+            return slack(x), f(x), grad(f)(x)
+        case 2:
+            return slack(x), f(x), grad(f)(x), jacobian(grad(f))(x)
+```,caption: [Objective function, with modifications highlighted in $redmath(#[red])$]
+)
+#pagebreak()
+Where the difference in points can be recompupted:
+#figure(
+  ```output
+--- Results for norm ---
+x with norm: [-0.28989802 -0.28989802]
+Obj value for x with norm: -0.5567027826682145
+Slack for x with norm: [-1.28989802 -1.28989802 -0.71010198 -0.71010198 -2.07979604]
+Distance to x_newton_stop: 0.07266446749572646
+Difference in objective value from x_newton_stop: 0.007749488905442137
+```,caption: [Output of iterative newton method with normalized constraint.]
+)
+
+And plotted:
+#figure(
+  image("assets/norm.png"),
+  caption: [The modified feasible space, showing the red initial point, green point for newton method without modified constrains and the blue point for the modified constraint]
+)
+
+Here the constraint has been moved, "cutting" a corner of the feasible space out. As the optimization algorithm finds the center of a given feasible space, it will move the center away from the area where the cutout is. This can also be explained as the optimization algorithm tries to balance the distance to each side of the feasible space, and if one of them moves closer, the point should then move accordingly.
+
+#pagebreak()
+== Task 4
+The problem can be formulated as follows:
+
+
+Let $ P = {bold(x) in RR^n | tran(bold(a)_i) bold(x) <= b_i, -1 leq x_j leq 1, i = 1, dots, m, j=1 , dots , n  } $
+
+$ f(bold(x))= -msum  log(-(tran(bold(a))_i bold(x) - b_i   ) )
+ + sum_(j=1)^n (-log(x_j+1)) + sum_(j=1)^n (-log(1-x_j))
+$
+
+
+
+
+By using the standard log barrier on the indivudal values of the vector $bold(x)$, it is possibe make it into an unconstrained linear optimization problem (assuming that the initial point $bold(x) in D$, where $D$ is the convex set). 
+
+By reusing the log barrier properties, each optimization problem of this form will simply treat the $|x_i| leq 1$ as linear constraints.
+=== Compute $nabla f(bold(x))$ and $nabla^2 f(bold(x))$
+The first term has been found from task 2, the second and third term can be found using the chain rule:
+$ 
+sum_(j=1)^n (-log(x_j+1))
+\ ddx [log(x)] = 1/x
+\ ddx [x_j+1]= 1
+\ ddx[(-log(x_j+1))] = -(1/(x_j+1))
+$
+
+$ 
+sum_(j=1)^n (-log(1-x_j))
+\ ddx [log(x)] = 1/x
+\ ddx [1-x_j]= -1
+\ ddx[(-log(1-x_j))] = -( (-1)/ (1 - x_j)  ) = sum_(j=1)^n (1/(1 - x_j ))
+$
+
+
+
+$ nabla f(bold(x)) =- msum  bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1) -sum_(j=1)^n ((1)/(x_j+1))
++sum_(j=1)^n ( (1)/(1-x_j))
+$
+
+Since the gradient is a vector, its important that the final output should also be a vector. The sums currently evaluate to scalars, to fix this, the appropriate basis vector is multiplied for each sum term. Since the sum term calculates the gradient value, the $e$ basis vector applies it to the correct element of the gradient vector:
+$ nabla f(bold(x)) =- msum  bold(a)_i (tran(bold(a))_i bold(x) - b_i )^(-1) 
+-sum_(j=1)^n (bold(e_j)/(x_j+1))
++sum_(j=1)^n ( bold(e)_j/(1-x_j))
+$
+
+Now to get the hessian, the same logic is applied. The function gets differentiated:
+
+$ ddx [ -(bold(e)_j / (x_j+1 ))]= [-bold(e)_j (x_j+1)^(-1)]= bold(e)_j (x_j+1)^(-2)  $
+
+$ ddx [bold(e)_j/(1-x_j)] = [bold(e)_j (1-x_j)^(-1)]=-bold(e)_j (1-x_j)^(-2) dot (-1) =bold(e)_j (1-x_j)^(-2) $
+
+$ nabla^2 f(bold(x)) = msum ( (bold(a)_i tran(bold(a)_i)) / (tran(bold(a))_i bold(x)-b_i  )^2 ) 
++ sum_(j=1)^n ((bold(e)_j) / (x_j+1)^2)
++ sum_(j=1)^n ( (bold(e)_j) / (x_j-1)^2)
+$
+
+Much like before, now the hessian is a matrix, therefore the output should also be a matrix as well. To do this, another basis vector is multiplied for each sum term.
+
+$ nabla^2 f(bold(x)) = msum ( (bold(a)_i tran(bold(a)_i)) / (tran(bold(a))_i bold(x)-b_i  )^2 ) 
++ sum_(j=1)^n ((bold(e)_j tran(bold(e)_j)) / (x_j+1)^2)
++ sum_(j=1)^n ( (bold(e)_j tran(bold(e)_j)) / (x_j-1)^2)
+$
+
+
+Here it can be reused that the first part is a positive matrix, and since the second and third term are sum of a positive integer divided by something squared, they're also positive. The expression can then be seen as $H+D_1+D_2$ where they are all positive, proving that the hessian is positive semi-definite.
+
+#pagebreak()
+=== Prove that $f(bold(x))$ is convex on its domain
+
+Expanding on the proof of convexity, it is already clear that the first term is convex. Since the second term $sum_(j=1)^n (-log(x_j +1))$ and third term $sum_(j=1)^n (-log(1 - x_j))$ are convex using the same logic, the new function is just sums of convex functions, and the proposition for convexity under sums still holds: 
+#definition(title: [Proposition: Convexity under sums], [
+    If ${f_i}_(j in {1,dots,m})$ are convex and $alpha_j_(j in {1,dots,m}) $ is non-negative, then $summ(j=1,m,alpha_j f_j)$ and #h(3em) $max_(j in {1,dots,m}) f_j$  are convex
+  ])<convex_sum>
+
+This can also be proved using the property:
+
+$ nabla^2f(bold(x)) succ.eq 0 quad forall bold(x) in D $
+
+From @Nocedal[p. 30], where $D$ again needs to be a convex set. Using the same arguments as before, the inequality constriants can be seen as half spaces, and this makes the domain a convex set. And since it has been established that the $nabla^2f$ is semi-positive definate, it is also convex
+
+
+
+
+  
+Lets test this on a case similar to earlier (but in 3 dimensions!). For this one should ensure that the methods should use 
+- *Search direction*
+This is the negative gradient, that is 
+  $ -nf(x) quad "(steepest descent)" $
+- *Backtracking line search*
+The step size $alpha_k$ is chosen via strong bracketing, which enforces both the Armijo (sufficient decrease) condition:
+$ f(bold(x) + alpha bold(d)) <= f(bold(x)) + beta alpha nabla f_bold(d) (bold(x)) $
+and the curvature (strong Wolfe) condition:
+$ |nabla f_bold(d) (bold(x) + alpha bold(d))| <= sigma |nabla f_bold(d)(bold(x))| $
+
+#pagebreak()
+- A *mechanism to ensure feasibility* (iterates remain in domain)
+
+After each step, the iterate is clipped to remain strictly inside the box constraints:
+$ bold(x)_(k+1) = "clip"(bold(x)_k + alpha_k bold(d)_k, -1 + epsilon, 1 - epsilon) $
+Such that any overshooting stays within $abs(x) <= 1$
+- A *stopping criterion* based on optimality measures: i.e., $norm(nf(x))_2 <= eta$. 
+When the gradient norm $norm(nf)$ is sufficiently small, the iterate is near a stationary point (local optima)
+#figure(
+  ```py
+if anp.linalg.norm(g) <= eta:
+            break
+```,caption: [Stopping criterion stopping the search when close to a local optima.]
+)
+
+Lets try this out on simple gradient descent problem with only one other inequality constraint.
+
+Lets 
+$ A = mat(0,1,1;) "and" b = mat(0) quad x_0 = mat(0., -0.7, 0.7) $
+Where $x_0$ is the initial search point.
+#figure(
+  image("assets/gdsb1.png",width: 25em),
+  caption: [Gradient Descent using line search to find a center point given the barriers, \ $x <=1$ and $A x<=b$ from initial point $x_0$.
+\ $x_"best" = $ `[ 0.        -0.4519704  0.4519704]`.]
+)<gdsb1>
+
+#figure(grid(columns: 2,
+  image("assets/alphasgd1.png"),
+  image("assets/conv_gd1.png")
+),
+caption: [_Left_: Alpha returns during line-search gradient descent from @gdsb1. \ _Right_: Convergence of the objective function from gradient descent from @gdsb1]
+)
+
+Lets add another inequality constraint
+
+$ A = mat(0,1,-1;1,0,-1) "and" b = mat(0;0) quad x_0 = mat(0., -0.7, 0.7) $
+#figure(
+  image("assets/gdsb2.png",width: 25em),
+  caption: [Gradient Descent using line search to find a center point given the barriers, \ $x <=1$ and $A x<=b$ from initial point $x_0.$ \ $x_"best" = $ `[-0.40824535 -0.40824813  0.61236766]`.]
+)<gdsb2>
+
+#figure(grid(columns: 2,
+  image("assets/alphasgd2.png"),
+  image("assets/conv_gd2.png")
+),
+caption: [_Left_: Alpha returns during line-search gradient descent from @gdsb2. \ _Right_: Convergence of the objective function from gradient descent from @gdsb2]
 )
 
 
 
+#pagebreak()
+Lets try and apply the newton method. 
+
+Again let
+$ A = mat(0,1,1;) "and" b = mat(0) quad x_0 = mat(0., -0.7, 0.7) $
+
+#figure(
+  grid(columns: 1,
+image("assets/newt3d1.png",width: 30em),
+
+),
+caption: [Newton method using line search to find a center point given the barriers, \ $x <=1$ and $A x<=b$ from initial point $x_0$.
+\ $x_"best" = $ `[ 0.         -0.44720245  0.44720245]`.]
+
+)<newt1>
+#figure(
+  grid(columns: 2,
+image("assets/newt3dstep1.png"),
+image("assets/newt3dconv1.png")
+
+),
+caption: [_Left_: Alpha returns during line-search newton method from @newt1. \ _Right_: Convergence of the objective function from newton method from @newt1]
+)
+
+#pagebreak()
+Now let $ A = mat(0,1,-1;1,0,-1) "and" b = mat(0;0) quad x_0 = mat(0., -0.7, 0.7) $
+#figure(
+  grid(columns: 1,
+image("assets/newt3d2.png",width: 30em),
+
+),
+caption: [Newton method using line search to find a center point given the barriers, \ $x <=1$ and $A x<=b$ from initial point $x_0$.
+\ $x_"best" = $ `[-0.40683268 -0.4105287   0.6125544 ]`.]
+)<newt2>
+#figure(
+  grid(columns: 2,
+image("assets/newt3dconv2.png"),
+image("assets/newt3dstep2.png")
+),
+caption: [_Left_: Alpha returns during line-search newton method from @newt2. \ _Right_: Convergence of the objective function from newton method from @newt2]
+)
+#pagebreak()
+
+== Discussion
+The gradient descent and Newton methods were both applied to the log-barrier problem in three dimensions, under one and two half-space constraints respectively. In both configurations, both methods successfully converged to a feasible center point, with the Gradient descent method converging in fewer iterations. Interestingly the newton method implementation didn't seem to use the line-search. This might be cause it uses the hessian scale the steps. For convex functions, theory would suggest that newtons methods should converge in fewer steps than the gradient descent. This could be due to the clipping mechanic of the code, interfering with the newtons ability to find the center point. Given more time, with this project, this would be researched more in detail, and perhaps modify the line search code to modify the step size to better account for leaving the feasible set.
+
+== Conclusion on case 1
+The $log$-barrier is successfully used to define the a feasible center of the convex polyhedron, with the minimize lying strictly within $P$. Convexity of the barrier function was proven both through the composition of convex and affine function, but also through positive definiteness of the Hessian.
+
+Both gradient descent and Newton's method were applied to the problem in two and three dimensions with one and two inequality constraints. Both methods converged reliably to feasible center points. While both implementations gave good results, the gradient descent proved to perform better in terms of iterations, but this is most likely due to an error in the implementation.
+
 
 // ─── Case 2 ───────────────────────────────────────────────────────────────────
 #pagebreak()
-= Case 2
+= Case 2 <case2>
 In this case the objective is to fairly distributes students across teams such that their attributes match the most. As each attribute carry a weight to determine its importance. 
 
 == Task 1
@@ -406,7 +834,6 @@ x_(s,T), y_(T,a,b) in {0,1} quad &$) $
 
 
 #pagebreak()
-= Case 2 (cont.)
 Task 2, 3 and 4 all implement the `ROAR-NET-API`. This allows using highly optimized construction and search functions like `greedy_construction` and `beam_search`. Since `ROAR-NET-API` is an external framework, is expects a problem to implement certain interfaces like: `SupportsLowerBound` or `SupportsApplyMove`. These interfaces define how the framework can interact with the problem without knowing the specific problem details. 
 
 By using `ROAR-NET-API` one can focus on implementing classes for the Problem, Solution, Move, and Neighbourhood, while the framework handles the search process. Because of this the development process is split into 3 tasks.
@@ -451,7 +878,7 @@ The problem should moreover initialize the both the neighbourhood and lists a li
             self.disagrees_with[b].add(a)
 ```,caption: [Part of the `Problem` implementation, this part creates the `disagrees_with`]
 )<problem2>
-After the problem definition , its also important that the solution is defined. The solution should contain: a reference to the problem instance (so the solution can access problem data), a list of assignments, the labels within each team in the solution, the team sizes, and the lower bound. 
+After the problem definition, its also important that the solution is defined. The solution should contain: a reference to the problem instance (so the solution can access problem data), a list of assignments, the labels within each team in the solution, the team sizes, and the lower bound. 
 
 #figure(
   ```py
@@ -929,7 +1356,7 @@ With a quick test (@deltas) the average delta of 100 random iterations is set to
 
 Then $T_0$ can be calculated as $ T_0 = (-1)/ln(0.5) apx 3.32  $
 Once this is done, the different temperature schedulers can be explored. Lets look at `geometric` and `cosineRestarts` @divedeep
-#pagebreak()
+
 === Geometric decay scheduler
 The geometric decay scheduler (@geocode), also known as factor decay, applies a constant decay factor at each iteration making a polynomial smooth decay.
 $ T_(i+1) = alpha dot T_(i) where alpha in [0,1] $
@@ -956,19 +1383,60 @@ def cosine(t0: float, t_min: float = 1.0, total: int = 1_000_000) ->
     return schedule
 ```, caption: [Cosine decay implemented for the simulated annealing method.]
 )<coscode>
+=== Simulated annealing 
+#figure(
+  ```py
+  def sa(problem, solution: Solution,budget: float = 60.0,
+    p_accept: float = 0.5, scheduler: Callable[[int], float] = None,
+    record: bool = False) -> tuple[Solution, list] | Solution:
+    """
+    Simulated Annealing (SA), using a scheduler, for the assignment problem implemented using `ROAR-NET-API`
+    """
 
+    neighbourhood = problem.local_neighbourhood()
+    s = solution.copy_solution()
+    best = s.copy_solution()
 
+    delta = estimate_delta(neighbourhood, s)
+    t0 = -delta / math.log(p_accept)
+    if scheduler is None:
+        scheduler = geometric(t0)
+
+    history = []
+    t_start = time.time()
+    k = 0
+    while time.time() - t_start < budget:
+        move = neighbourhood.random_move(s)
+        if move is None:
+            break
+        incr = move.objective_value_increment(s)
+        temp = scheduler(k)
+        if temp == 0:
+            break
+        accepted = incr < 0 or random.random() < math.exp(-incr / temp)
+        if accepted:
+            move.apply_move(s)
+            if s.lb < best.lb:
+                best = s.copy_solution()
+        if record:
+            history.append({"k": k, "temp": temp, "cost": s.lb})
+        k += 1
+
+    return (best, history) if record else best
+  ```
+)
+The simulated annealing method above finds a best solution, within a time interval (constrained by the decay). It initiates a $Delta$ value with the `estimate_delta`, and  creates random moves within the time interval, selecting better moves along the way. The simulated annealing method escapes local optima by sometimes taking bad moves. This is done at line `28`, where a move is accepted if the increment is smaller (e.i. the move is better), or at random times given the scheduler allows it.
 
 #pagebreak()
 === Testing
 Now lets test both of the schedulers to see their performance on this problem.
 
 #figure(
-  image("assest/geometric.png"),
+  image("assets/geometric.png"),
   caption: [Here is the simulated annealing depicted with a geometric scheduler. The upper figure shows the temperature decreasing by a constant factor, and lower figure shows the cost dropping accordingly]
 )<geo>
 #figure(
-  image("assest/cosine.png"),
+  image("assets/cosine.png"),
   caption: [Here is the simulated annealing depicted with a cosine scheduler. The upper figure shows the temperature decreasing with a cosine shape, and the lower figure shows  cost dropping accordingly]
 )<cos>
 As shown on @geo and @cos, both schedulers can be visualized to verify expected behavior. @geo shows the geometric scheduler decaying rapidly toward zero, while @cos shows the cosine scheduler cooling gradually.
@@ -1004,11 +1472,10 @@ Solution(
 Execution time: 622.6760261058807
 ```, caption: [Solution made by simulated annealing with a cosine scheduler]
 )<cos2>
-The simulated annealing methods (@geo2 and @cos2), improves even further on the solution, and results in a better solution than both the `best_improvement` and `first_improvement`. The best  result of the simulated annealing methods resulted in a best solution of `cost=6660`. This came using the geometric scheduler.
+The simulated annealing methods (@geo2 and @cos2), improves even further on the solution, and results in a better solution than both the `best_improvement` and `first_improvement`. The best  result of the simulated annealing methods resulted in a best solution of `cost=6660`. This came using the geometric scheduler. Note that all results from Case 2, are tested on a Mac Book Air 15, with an apple M4 chip and 16 GB ram.
 
 == Conclusion on Case 2
-The results from the case 2 experiments has proven to valuable information about the optimization process. The greedy construction heuristic reliably produces complete, feasible solutions, and while its objective is primarily construction rather than optimization, it serves as a strong foundation for later improvement.The local search improvement methods showed significant gains compared to the constructed solutions, consistently finding local optima that reduces cost.
-At last the simulated annealing proved to be the most effective approach overall, being able to escape local optima through somewhat controlled randomness. It achieved the overall lowest solution costs within what the authors view as an acceptable computational time. The best solution achieved with the simulated annealing using a geometric scheduler achieved the low cost of `6660`.
+The results from the case 2 experiments has shown that the implemented methods to be a valuable the optimization process. The greedy construction heuristic reliably produces complete, feasible solutions. The local search improvement methods showed significantly better solutions compared to the constructed ones. The simulated annealing proved to be the most effective approach overall, being able to escape local optima through somewhat controlled randomness. It achieved the overall lowest solution costs within what the authors view as an acceptable computational time. The best solution achieved with the simulated annealing using a geometric scheduler achieved the low cost of `6660`.
 The implemented methods overall each create a distinct role in the optimization process, and offers different trade-offs between solution quality and computational effort.
 
 // ─── Appendix ─────────────────────────────────────────────────────────────────
