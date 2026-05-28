@@ -45,7 +45,7 @@ def sa(
     budget: float = 60.0,
     p_accept: float = 0.5,
     scheduler: Callable[[int], float] = None,
-    record: bool = False,
+    record: bool = False
 ) -> tuple[Solution, list] | Solution:
     """
     Simulated Annealing (SA), using a scheduler, for the assignment problem implemented using `ROAR-NET-API`

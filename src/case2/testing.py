@@ -24,7 +24,7 @@ def test(instance: str):
     #scheduler = cosine(t0=t0,t_min=0.01,total=1000_000)
 
     best = None
-    for _ in range(10):
+    for _ in range(1):
         s = alg.greedy_construction(p)
         candidate, history = sa(problem=p, solution=s, budget=60, p_accept=0.5, scheduler=scheduler, record=True)
         if best is None or candidate.lb < best.lb:

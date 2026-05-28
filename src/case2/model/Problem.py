@@ -31,7 +31,7 @@ class Problem(
         self.min_size = min_size
         self.max_size = max_size
 
-        # precompute disagreement adjacency
+        # Initiate precomputed disagreement lists
         self.disagrees_with = [set() for _ in range(n_students)]
         for a, b in disagreements:
             self.disagrees_with[a].add(b)

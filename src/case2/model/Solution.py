@@ -45,11 +45,11 @@ class Solution(SupportsCopySolution, SupportsLowerBound):
     def __repr__(self): # repr for printing
         return (
             f"Solution(\n"
-            #f"  assignments={self.assignments!r},\n"
-            #f"  num_students={len(self.assignments)}\n"
-            #f"  team_labels={self.team_labels!r},\n"
-            #f"  team_sizes={self.team_sizes!r},\n"
-            #f"  num_teams={len(self.team_sizes)!r},\n"
+            f"  assignments={self.assignments!r},\n"
+            f"  num_students={len(self.assignments)}\n"
+            f"  team_labels={self.team_labels!r},\n"
+            f"  team_sizes={self.team_sizes!r},\n"
+            f"  num_teams={len(self.team_sizes)!r},\n"
             f"  cost={self.lb!r}\n"
             f")"
         )

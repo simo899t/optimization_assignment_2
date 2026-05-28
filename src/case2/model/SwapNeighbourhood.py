@@ -73,5 +73,5 @@ class SwapNeighbourhood(
 
             if t1 == t2:
                 continue
-            if self._is_feasible_switch(s1, s2, t1, t2, solution):
+            if self._is_feasible_swap(s1, s2, t1, t2, solution):
                 yield SwapMove(s1, s2, t1, t2)
